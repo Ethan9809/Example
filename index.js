@@ -3,14 +3,11 @@ const fs = require("fs")
 const Koa = require("koa")
 const KoaRouter = require("koa-router")
 const KoaStaticServer = require("koa-static-server")
-const {renderToString} = require("react-dom/server")
-const manifest = require("./static/manifest.json")
-const pug = require("pug")
+
 
 const app = new Koa()
 const router = new KoaRouter()
 // ssr
-const createApp = require("./static/server.bundle").default
 // 渲染markdown 函数
 const {blogArticle,journalArticle,aboutArticle} = require("./server/route/markdown")
 
@@ -25,14 +22,7 @@ app.use(async (ctx,next)=>{
   const url = ctx.url
   if(/^\/api/.test(url) || /^\/assets/.test(url) || /\.(\w+)$/i.test(url) || url === "/about")
     return next()
-  
-  const title = url.includes("blog") ? "blog" : url.includes("journal") ? "journal" : "site"
-  const appString = renderToString(createApp(ctx))
-  ctx.body = pug.renderFile(path.resolve(__dirname,"./static/index.template.pug"),{
-    title,
-    appString,
-    manifest:Object.values(manifest)
-  })
+  ctx.body = String(fs.readFileSync(path.resolve(__dirname,"./static/index.html")))
 })
 // markdown模板展示
 app.use(async (ctx,next) => {
