@@ -4,7 +4,9 @@ const Koa = require("koa")
 const KoaRouter = require("koa-router")
 const KoaStaticServer = require("koa-static-server")
 const {renderToString} = require("react-dom/server")
-const mainfest = require("./static/manifest.json")
+const manifest = require("./static/manifest.json")
+const pug = require("pug")
+
 const app = new Koa()
 const router = new KoaRouter()
 // ssr
@@ -23,18 +25,14 @@ app.use(async (ctx,next)=>{
   const url = ctx.url
   if(/^\/api/.test(url) || /^\/assets/.test(url) || /\.(\w+)$/i.test(url) || url === "/about")
     return next()
+  
+  const title = url.includes("blog") ? "blog" : url.includes("journal") ? "journal" : "site"
   const appString = renderToString(createApp(ctx))
-  ctx.body = `
-    <!DOCTYPE html><!DOCTYPE html><html lang="en">
-    <head>
-      <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>SSR</title>
-      <link rel ="stylesheet" href=${mainfest["app.css"]} />
-    </head>
-    <body>
-      ${appString}
-    </body></html>
-  `
+  ctx.body = pug.renderFile(path.resolve(__dirname,"./static/index.template.pug"),{
+    title,
+    appString,
+    manifest:Object.values(manifest)
+  })
 })
 // markdown模板展示
 app.use(async (ctx,next) => {

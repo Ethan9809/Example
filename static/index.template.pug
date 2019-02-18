@@ -8,12 +8,10 @@ html(lang="en")
     - const styleSheets = manifest.filter(i => i.includes("css"))
     each styleSheet in styleSheets
       link(rel="stylesheet" href=styleSheet)  
-    script window.__initReduxState__= !{JSON.stringify(state)}
     title #{title}
   body
-    div#root
+    div#root !{appString}
     - const srcipts = manifest.filter(i => i.includes("js"))
     each script in srcipts
       script(src=script)
-    script(src="/sw/index.js")
 
