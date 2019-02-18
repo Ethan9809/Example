@@ -3,18 +3,18 @@ const fs = require("fs")
 const Koa = require("koa")
 const KoaRouter = require("koa-router")
 const KoaStaticServer = require("koa-static-server")
-const pug = require("pug")
-const manifest = require("./static/manifest.json")
+const {renderToString} = require("react-dom/server")
+const mainfest = require("./static/manifest.json")
 const app = new Koa()
 const router = new KoaRouter()
-/** SSR
- *   服务端渲染
- */
-const renderToString = require("./static/server.bundle").default
+// ssr
+const createApp = require("./static/server.bundle").default
 // 渲染markdown 函数
 const {blogArticle,journalArticle,aboutArticle} = require("./server/route/markdown")
 
-// 服务端渲染ssr
+/** SSR服务端渲染
+ *   
+ */
 app.use(async (ctx,next)=>{
   /**
    * 如果接口是api接口,或者是静态文件 
@@ -23,24 +23,18 @@ app.use(async (ctx,next)=>{
   const url = ctx.url
   if(/^\/api/.test(url) || /^\/assets/.test(url) || /\.(\w+)$/i.test(url) || url === "/about")
     return next()
-  const {renderedNodeStream,state} = await renderToString(ctx)
-  const title = url.includes("blog") ? "blog":url.includes("journal")?"journal":"Ethan's site"
-  const documentBody = pug.renderFile(path.resolve(__dirname,"./static/index.template.pug"),{
-    title,
-    state,
-    manifest:Object.values(manifest)
-  })
-  ctx.status = 200
-  // 禁止使用koa提供的处理响应的方法,使用原声node方法
-  ctx.respond = false
-  const res = ctx.res
-  const bodyExec = /([\s\S]+id="root">)([\s\S]+)/.exec(documentBody)
-  res.write(bodyExec[1])
-  renderedNodeStream.pipe(res,{end:false})
-  renderedNodeStream.on("end",()=>{
-    res.end(bodyExec[2])
-  })
-  return 
+  const appString = renderToString(createApp(ctx))
+  ctx.body = `
+    <!DOCTYPE html><!DOCTYPE html><html lang="en">
+    <head>
+      <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>SSR</title>
+      <link rel ="stylesheet" href=${mainfest["app.css"]} />
+    </head>
+    <body>
+      ${appString}
+    </body></html>
+  `
 })
 // markdown模板展示
 app.use(async (ctx,next) => {
