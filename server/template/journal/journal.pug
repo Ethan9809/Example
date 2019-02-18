@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    meta(http-equiv="X-UA-Compatible", content="ie=edge")
+    link(rel="icon", href="/image/avatar.png" type="image/x-icon")
+    style
+      include journal.base.css
+      include journal.github.markdown.css
+      include journal.prism.css
+    title #{title}
+  body
+    header
+      image(class="avatar" src="/image/avatar.png")
+      nav
+        span(id="back") &lt;Backward
+    ul(class="dots")
+    section(class="markdown-body") !{markDown}
+    script
+      include journal.prism.js
+      include journal.dots.js
