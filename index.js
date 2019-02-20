@@ -21,6 +21,7 @@ app.use(async (ctx,next)=>{
    * 则进过下一个中间件，不进行服务端渲染
    */
   const url = ctx.url
+  console.log(url)
   if(/^\/api/.test(url) || /^\/assets/.test(url) || /\.(\w+)$/i.test(url) || url === "/about")
     return next()
   const {renderedNodeStream,state} = await renderToString(ctx)
